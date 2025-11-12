@@ -1,0 +1,115 @@
+.dt-row {
+    margin-bottom: 15px!important;
+}
+
+.bootstrap-tagsinput {
+    min-height: 28px!important;
+    font-size: 1rem;
+    line-height: 28px!important;
+}
+
+.notes_content_block_class {
+    width: 100%;
+    height: 500px;
+    position: relative;
+}
+
+.notes_content_inside_block_class {
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.customer_note_submit_class {
+    width: 100%!important;
+}
+
+.dataTables_scrollBody tbody > tr {
+    line-height: 50px!important;
+}
+
+.dataTables_scrollBody .order-actions {
+    margin-top: 8px!important;
+}
+
+.dataTables_info,
+.dataTables_paginate {
+    margin-top: 15px!important;
+}
+
+.dataTables_length {
+    margin-bottom: 15px!important;
+}
+
+.other_block_input_remove_button_class,
+.other_block_input_add_button_class {
+    width: 30px!important;
+    text-align: center!important;
+}
+
+.text-first-letter-capitalize::first-letter {
+    text-transform: capitalize!important;
+}
+
+.portal_logout_text_class {
+    transition: all 0.1s ease;
+}
+
+.portal_logout_text_class:hover {
+    color: #5e72e4;
+    text-decoration: underline;
+}
+
+.case_history_table_case_id_row_class {
+    line-height: 30px!important;
+}
+
+.select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+    line-height: calc(1.5em + 0.75rem);
+    color: #212529;
+    font-size: 1rem;
+    padding-left: 12px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered { color: #FFF; }
+
+.family_member_add_class,
+.family_member_remove_class {
+    margin-top: 20px!important;
+}
+
+.create_note_form_submit_class {
+    margin-top: 18px!important;
+}
+
+.prevent-select {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+
+.notes_show_block_text_class {
+    text-align: justify!important;
+}
+
+.nav_2_submenu {
+    margin-left: 160px!important;
+    margin-top: -35px!important;
+}
+
+.rider_select_class {
+    margin-top: 20px!important;
+}
+
+.create_a_rider_profile_button_class,
+#rider_add_button_id {
+    margin-top: 22px!important;
+}
+
+.rider_remove_class {
+    margin-top: 20px!important;
+}
+
+#calendar_div_id * {
+    text-transform: capitalize!important;
+}
