@@ -170,7 +170,7 @@ Route::group(['domain' => 'portal.nydt.law'], function() { // TODO: Prod: portal
         Route::match(['get', 'post'],'/forgot-password', [PortalAuthController::class, 'forgot_password'])->middleware('portal_auth_check')->name('portal->forgot_password->show');
         Route::match(['get', 'post'],'/change-password/{token}', [PortalAuthController::class, 'change_password'])->middleware('portal_auth_check')->name('portal->change_password->show');
         Route::match(['get', 'post'],'/logout', [PortalAuthController::class, 'logout'])->name('portal->logout');
-        Route::match(['get', 'post'],'/set-password/{customer_id}', [PortalAuthController::class, 'set_password'])->middleware('portal_auth_check')->name('portal->set-password->show');
+        Route::match(['get', 'post'],'/set-password/{token}', [PortalAuthController::class, 'set_password'])->middleware('portal_auth_check')->name('portal->set-password->show');
         Route::match(['get', 'post'],'/dashboard', [PortalDashboardController::class, 'show'])->middleware('portal_auth')->name('portal->dashboard->show');
         Route::match(['get', 'post'],'/profile', [PortalCustomerProfileController::class, 'show'])->middleware('portal_auth')->name('portal->profile->show');
         Route::match(['get', 'post'],'/case-history', [PortalCustomerCaseHistoryController::class, 'show'])->middleware('portal_auth')->name('portal->case_history->show');
@@ -188,7 +188,6 @@ Route::group(['prefix' => 'datatables', 'middleware' => ['auth']], function(){
     Route::get('/cases/show', [DatatablesController::class, 'cases_show'])->name('datatables-cases_show');
     Route::get('/system-status/twilio-messaging', [DatatablesController::class, 'system_status_twilio_messaging_show'])->name('datatables-system_status_twilio_messaging_show');
 });
-
 
 
 

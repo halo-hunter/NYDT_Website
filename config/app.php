@@ -11,6 +11,7 @@ return [
 
     'dev_ip_address' => env('DEV_IP_ADDRESS', '127.0.0.1'),
     'dev_email_address' => env('DEV_EMAIL_ADDRESS'),
+    'client_invitation_ttl' => env('CLIENT_INVITATION_TTL', 60),
 
     'company_name' => env('COMPANY_NAME', 'Sample Company'),
     'company_short_name' => env('COMPANY_SHORT_NAME', 'Sample Company'),

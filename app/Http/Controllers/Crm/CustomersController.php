@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Crm;
 use App\Http\Controllers\Controller;
 use App\Mail\Crm\ForgorPassword;
 use App\Mail\Crm\SendRequestedDocumentListToCustomer;
-use App\Mail\Crm\SendSetPasswordUrlToCustomer;
+use App\Models\Crm\Client;
 use App\Models\Crm\Attorneys;
+use App\Models\Crm\Client;
 use App\Models\Crm\CompanyInfo;
 use App\Models\Crm\CustomerNotes;
 use App\Models\Crm\Customers;
@@ -25,6 +26,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\File;
+use App\Services\ClientInvitationService;
 
 class CustomersController extends Controller
 {
@@ -122,16 +124,9 @@ class CustomersController extends Controller
                         ->withInput();
                 }
 
-                if (Customers::where('id', $id)->first()->email == '' && $request->email != '' && Customers::where('id', $id)->first()->password == '') {
-                    Customers::where('id', $id)->update([
-                        'password' => 1
-                    ]);
-                    $mail_data = [
-                        'customer_id' => $id,
-                    ];
-                    Mail::to($request->email)
-                        ->bcc(EmailSettings::get_bcc_mail_addresses_with_dev_email())
-                        ->send(new SendSetPasswordUrlToCustomer($mail_data));
+                $customer = Customers::find($id);
+                if ($customer && $customer->email == '' && $request->email != '' && $customer->password == '') {
+                    $this->sendPortalInvitationForCustomer($customer, $request->email);
                 }
 
                 if ($request->upload_retainer != null) {
@@ -514,5 +509,30 @@ class CustomersController extends Controller
                 'message' => 'No client found!'
             ]);
         }
+    }
+
+    protected function sendPortalInvitationForCustomer(?Customers $customer, string $email): void
+    {
+        if ($email === '') {
+            return;
+        }
+
+        $client = Client::where('email', $email)->first();
+
+        if (! $client && $customer) {
+            $client = Client::find($customer->id);
+        }
+
+        if (! $client) {
+            return;
+        }
+
+        $client->update([
+            'email' => $email,
+            'password' => null,
+            'password_status' => 'pending',
+        ]);
+
+        ClientInvitationService::send($client);
     }
 }

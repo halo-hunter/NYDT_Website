@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Crm;
 
 use App\Http\Controllers\Controller;
-use App\Mail\Crm\SendSetPasswordUrlToCustomer;
 use App\Models\Crm\Client;
 use App\Models\Crm\Customers;
 use App\Models\Crm\EmailSettings;
@@ -12,10 +11,10 @@ use App\Models\Crm\FamilyMember;
 use App\Models\Crm\Relation;
 use App\Models\Crm\ResidencyWithinFiveYears;
 use App\Models\Crm\Rider;
+use App\Services\ClientInvitationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -76,6 +75,7 @@ class ClientController extends Controller
                 'address_address' => Str::lower($request->address_address),
                 'profile_photo' => $fileName,
                 'marital_status' => $request->marital_status,
+                'password_status' => $request->email ? 'pending' : 'missing_email',
 
                 'education__name_of_school' => $request->education__name_of_school,
                 'education__type_of_school' => $request->education__type_of_school,
@@ -120,16 +120,12 @@ class ClientController extends Controller
             }
 
             if ($request->email != '') {
-
-                Client::where('id', $client_id)->update([
-                    'password' => 1
+                $client = Client::find($client_id);
+                $client->update([
+                    'password' => null,
+                    'password_status' => 'pending',
                 ]);
-                $mail_data = [
-                    'client_id' => $client_id,
-                ];
-                Mail::to($request->email)
-                    ->bcc(EmailSettings::get_bcc_mail_addresses_with_dev_email())
-                    ->send(new SendSetPasswordUrlToCustomer($mail_data));
+                ClientInvitationService::send($client);
             }
 
 //            if ($client_id != '') {
@@ -278,16 +274,14 @@ class ClientController extends Controller
                     ->withInput();
             }
 
-            if (Client::where('id', $id)->first()->email == '' && $request->email != '' && Client::where('id', $id)->first()->password == '') {
-                Client::where('id', $id)->update([
-                    'password' => 1
+            $client = Client::find($id);
+            $shouldResendInvitation = $request->email != '' && $client && $client->password_status !== 'set';
+            if ($shouldResendInvitation) {
+                $client->update([
+                    'password' => null,
+                    'password_status' => 'pending',
                 ]);
-                $mail_data = [
-                    'client_id' => $id,
-                ];
-                Mail::to($request->email)
-                    ->bcc(EmailSettings::get_bcc_mail_addresses_with_dev_email())
-                    ->send(new SendSetPasswordUrlToCustomer($mail_data));
+                ClientInvitationService::send($client);
             }
 
             if ($request->profile_photo != null) {

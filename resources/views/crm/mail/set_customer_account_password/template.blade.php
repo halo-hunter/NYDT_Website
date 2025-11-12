@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
 </head>
 <body>
+@php
+    $resetLink = route('portal->set-password->show', ['token' => $mail_data['token']]);
+    $expiresAt = isset($mail_data['expires_at']) ? \Carbon\Carbon::parse($mail_data['expires_at'])->timezone(config('app.timezone')) : null;
+@endphp
 <div style="width: 95%; display: table; margin: 0 auto">
 
     <div style="width: 100%; height: 60px; margin-top: 15px; margin-left: 15px; margin-right:15px; background-color: #5e72e4; border-top-left-radius: 5px; border-top-right-radius: 5px;">
@@ -15,7 +19,14 @@
     <div style="width: 100%; height: auto; margin-top: -16px; margin-left:15px; margin-right: 15px; background-color: #f8f9fa; color: #000000; ">
         <div style="text-align: left; padding-bottom: 15px; padding-left: 15px;">
             <div style="margin-bottom: 15px!important; padding-top: 35px!important;">
-                Set your account password here: <a href="{{ route('portal->set-password->show', $mail_data['client_id']) }}" target="_blank">{{ route('portal->set-password->show', $mail_data['client_id']) }}</a>
+                Set your account password here: <a href="{{ $resetLink }}" target="_blank">{{ $resetLink }}</a>
+            </div>
+            <div style="margin-bottom: 15px;">
+                @if($expiresAt)
+                    This link will expire on {{ $expiresAt->format('M d, Y h:i A') }}.
+                @else
+                    This link will expire soon. If it stops working, request a new invitation from your case manager.
+                @endif
             </div>
         </div>
     </div>

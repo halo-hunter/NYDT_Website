@@ -8,6 +8,7 @@ use App\Mail\Crm\ForgorPassword;
 use App\Mail\Portal\CustomerPasswordHasBeenSetSuccessfully;
 use App\Mail\Portal\PortalChangePassword;
 use App\Mail\Portal\PortalForgotPassword;
+use App\Models\ClientInvitationToken;
 use App\Models\Crm\Client;
 use App\Models\Crm\Customers;
 use App\Models\Crm\EmailSettings;
@@ -33,7 +34,9 @@ class PortalAuthController extends Controller
 //        }
     }
 
-    public function set_password(Request $request, $id) {
+    public function set_password(Request $request, string $token)
+    {
+        $tokenValue = $request->route('token') ?? $token;
 
         if (Auth::check()) {
             Auth::logout();
@@ -41,33 +44,44 @@ class PortalAuthController extends Controller
             $request->session()->regenerateToken();
         }
 
-        if (Client::where('id', $id)->exists()) {
-            if (Client::where('id', $id)->first()->password == 1 && Client::where('id', $id)->first()->email != '') {
-                if ($request->isMethod('get')) {
-                    return view('portal.pages.set_password.show');
-                } elseif ($request->isMethod('post')) {
-                    $validator = Validator::make($request->all(), [
-                        'password' => 'required|min:8',
-                        'confirm_password' => 'required|same:password',
-                    ]);
-                    if ($validator->fails()) {
-                        return back()->withErrors($validator)
-                            ->withInput();
-                    }
-                    Client::where('id', $id)->update([
-                        'password' => Hash::make($request->password)
-                    ]);
-                    Mail::to(Client::where('id', $id)->first()->email)
-                        ->bcc(EmailSettings::get_bcc_mail_addresses_with_dev_email())
-                        ->send(new CustomerPasswordHasBeenSetSuccessfully());
-                    return redirect()->route('portal->login->show')->with("password_has_been_set_success_message", "password has been set successfully");
-                }
-            } else {
-                abort(404);
-            }
-        } else {
+        $invitation = ClientInvitationToken::findValidToken($tokenValue);
+
+        if (! $invitation || ! $invitation->client || $invitation->client->password_status === 'set') {
             abort(404);
         }
+
+        $client = $invitation->client;
+
+        if ($request->isMethod('get')) {
+            return view('portal.pages.set_password.show', ['token' => $tokenValue]);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'password' => 'required|min:8',
+            'confirm_password' => 'required|same:password',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)
+                ->withInput();
+        }
+
+        $client->update([
+            'password' => Hash::make($request->password),
+            'password_status' => 'set',
+        ]);
+
+        $invitation->markConsumed();
+
+        ClientInvitationToken::where('client_id', $client->id)
+            ->whereNull('consumed_at')
+            ->delete();
+
+        Mail::to($client->email)
+            ->bcc(EmailSettings::get_bcc_mail_addresses_with_dev_email())
+            ->send(new CustomerPasswordHasBeenSetSuccessfully());
+
+        return redirect()->route('portal->login->show')->with("password_has_been_set_success_message", "password has been set successfully");
     }
 
     public function login(Request $request) {
@@ -80,6 +94,7 @@ class PortalAuthController extends Controller
             ]);
             if (Client::where('email', $request->email)->exists()) {
                 if (Hash::check($request->password, Client::where('email', $request->email)->first()->password)) {
+                    $request->session()->regenerate();
                     session()->forget('portal_authorized_user_id');
                     session()->put('portal_authorized_user_id', Client::where('email', $request->email)->first()->id);
                     session()->save();

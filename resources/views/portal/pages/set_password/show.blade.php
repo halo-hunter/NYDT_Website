@@ -25,8 +25,9 @@
                                             </div>
                                         </small>
                                     @endif
-                                    <form method="post">
+                                    <form method="post" action="{{ route('portal->set-password->show', $token ?? request()->route('token')) }}">
                                         @csrf
+                                        <input type="hidden" name="token" value="{{ $token ?? request()->route('token') }}">
                                         <div class="mb-3 mt-5">
                                             <label class="form-label">Password</label>
                                             <div class="input-group" id="show_hide_new_password">
