@@ -10,6 +10,12 @@ class Client extends Model
 {
     use HasFactory, SoftDeletes;
     public $timestamps = true;
+    protected $guarded = [];
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\ClientFactory::new();
+    }
 
     public function cases() {
         return $this->belongsToMany(CaseModel::class, 'client_case', 'client_id', 'case_id')->withTimestamps();

@@ -10,15 +10,18 @@ class EmailSettings extends Model
     use HasFactory;
 
     public static function get_bcc_mail_addresses_with_dev_email(){
-        if (EmailSettings::first()->bcc != '') {
-            $bcc_array = explode(',', EmailSettings::first()->bcc);
-            if (config('app.dev_email_address') != '') {
-                array_push($bcc_array, config('app.dev_email_address'));
-            }
-        } else {
-            $bcc_array = [];
-            array_push($bcc_array, config('app.dev_email_address'));
+        $emailSettings = EmailSettings::first();
+
+        $bcc_array = [];
+
+        if ($emailSettings && $emailSettings->bcc != '') {
+            $bcc_array = explode(',', $emailSettings->bcc);
         }
-        return $bcc_array;
+
+        if (config('app.dev_email_address') != '') {
+            $bcc_array[] = config('app.dev_email_address');
+        }
+
+        return array_filter($bcc_array);
     }
 }
