@@ -15,7 +15,7 @@ class PortalAuthCheck
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (session()->has('portal_authorized_user_id')) {
+        if (\Illuminate\Support\Facades\Auth::guard('portal')->check()) {
             return redirect()->route('portal->dashboard->show');
         } else {
             return $next($request);

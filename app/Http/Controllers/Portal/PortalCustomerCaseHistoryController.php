@@ -10,8 +10,12 @@ use Illuminate\Http\Request;
 class PortalCustomerCaseHistoryController extends Controller
 {
     public function show(Request $request) {
-        $portal_auth_user_id = session()->get('portal_authorized_user_id');
-        $client = Client::find($portal_auth_user_id);
+        $client = \Illuminate\Support\Facades\Auth::guard('portal')->user();
+
+        if (! $client) {
+            return redirect()->route('portal->login->show');
+        }
+
         $client_cases = $client->cases()->get();
 
         $data = [
