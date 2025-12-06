@@ -41,7 +41,8 @@
                                                 <h6 class="mb-0">Host</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\EmailSettings::first()->host }}" name="host" />
+                                                @php($emailSettings = \App\Models\Crm\EmailSettings::first())
+                                                <input type="text" class="form-control" value="{{ optional($emailSettings)->host }}" name="host" />
                                                 @error('host')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -52,7 +53,7 @@
                                                 <h6 class="mb-0">Port</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\EmailSettings::first()->port }}" name="port" />
+                                                <input type="text" class="form-control" value="{{ optional($emailSettings)->port }}" name="port" />
                                                 @error('port')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -63,7 +64,7 @@
                                                 <h6 class="mb-0">Encryption</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\EmailSettings::first()->encryption }}" name="encryption" />
+                                                <input type="text" class="form-control" value="{{ optional($emailSettings)->encryption }}" name="encryption" />
                                                 @error('encryption')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -74,7 +75,7 @@
                                                 <h6 class="mb-0">Username (Email Address)</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\EmailSettings::first()->username }}" name="username" />
+                                                <input type="text" class="form-control" value="{{ optional($emailSettings)->username }}" name="username" />
                                                 @error('username')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -86,7 +87,7 @@
                                             </div>
                                             <div class="col-sm-9 text-secondary">
                                                 <div class="input-group" id="show_hide_password">
-                                                    <input type="password" class="form-control border-end-0" name="password" value="{{ \App\Models\Crm\EmailSettings::first()->password }}">
+                                                    <input type="password" class="form-control border-end-0" name="password" value="{{ optional($emailSettings)->password }}">
                                                     <a href="javascript:;" class="input-group-text bg-transparent"><i class='bx bx-hide'></i></a>
                                                 </div>
                                                 @error('password')
@@ -100,7 +101,7 @@
                                                 <h6 class="mb-0">BCC</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control border-end-0 email_settings_tags_input_class" data-role="tagsinput" value="{{ \App\Models\Crm\EmailSettings::first()->bcc }}" name="bcc">
+                                                <input type="text" class="form-control border-end-0 email_settings_tags_input_class" data-role="tagsinput" value="{{ optional($emailSettings)->bcc }}" name="bcc">
                                                 @error('bcc')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror

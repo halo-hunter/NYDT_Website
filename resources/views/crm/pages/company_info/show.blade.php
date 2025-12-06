@@ -39,7 +39,8 @@
                                                 <h6 class="mb-0">Company Name</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\CompanyInfo::first()->company_name }}" name="company_name" />
+                                                @php($company = \App\Models\Crm\CompanyInfo::first())
+                                                <input type="text" class="form-control" value="{{ optional($company)->company_name }}" name="company_name" />
                                                 @error('company_name')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -62,10 +63,11 @@
                                                 <h6 class="mb-0">State</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
+                                                @php($company = \App\Models\Crm\CompanyInfo::first())
                                                 <select class="form-select text-capitalize single-select" aria-label="Default select example" name="company_address_state_code">
                                                     <option selected disabled>Select</option>
                                                     @foreach(\App\Models\Crm\States::all() as $state)
-                                                        <option value="{{ $state->state_code }}" @if(\App\Models\Crm\CompanyInfo::first()->company_address_state_code != '' && \App\Models\Crm\CompanyInfo::first()->company_address_state_code == $state->state_code) selected @elseif(old('company_address_state_code') == $state->state_code) selected @endif>{{ $state->state_name }}</option>
+                                                        <option value="{{ $state->state_code }}" @if(optional($company)->company_address_state_code && optional($company)->company_address_state_code == $state->state_code) selected @elseif(old('company_address_state_code') == $state->state_code) selected @endif>{{ $state->state_name }}</option>
                                                     @endforeach
                                                 </select>
                                                 @error('company_address_state_code')
@@ -78,7 +80,7 @@
                                                 <h6 class="mb-0">City</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\CompanyInfo::first()->company_address_city }}" name="company_address_city" />
+                                                <input type="text" class="form-control" value="{{ optional($company)->company_address_city }}" name="company_address_city" />
                                                 @error('company_address_city')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -89,7 +91,7 @@
                                                 <h6 class="mb-0">Zip Code</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\CompanyInfo::first()->company_address_zip_code }}" name="company_address_zip_code" />
+                                                <input type="text" class="form-control" value="{{ optional($company)->company_address_zip_code }}" name="company_address_zip_code" />
                                                 @error('company_address_zip_code')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -100,7 +102,7 @@
                                                 <h6 class="mb-0">Unit</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\CompanyInfo::first()->company_address_unit }}" name="company_address_unit" />
+                                                <input type="text" class="form-control" value="{{ optional($company)->company_address_unit }}" name="company_address_unit" />
                                                 @error('company_address_unit')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -111,7 +113,7 @@
                                                 <h6 class="mb-0">Address 1</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\CompanyInfo::first()->company_address_address_1 }}" name="company_address_address_1" />
+                                                <input type="text" class="form-control" value="{{ optional($company)->company_address_address_1 }}" name="company_address_address_1" />
                                                 @error('company_address_address_1')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -122,7 +124,7 @@
                                                 <h6 class="mb-0">Address 2</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\CompanyInfo::first()->company_address_address_2 }}" name="company_address_address_2" />
+                                                <input type="text" class="form-control" value="{{ optional($company)->company_address_address_2 }}" name="company_address_address_2" />
                                                 @error('company_address_address_2')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -133,7 +135,7 @@
                                                 <h6 class="mb-0">Email</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\CompanyInfo::first()->email }}" name="email" />
+                                                <input type="text" class="form-control" value="{{ optional($company)->email }}" name="email" />
                                                 @error('email')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -144,7 +146,7 @@
                                                 <h6 class="mb-0">Phone</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" id="attorney_phone_number_input_id" value="{{ \App\Models\Crm\CompanyInfo::first()->phone }}" name="phone" />
+                                                <input type="text" class="form-control" id="attorney_phone_number_input_id" value="{{ optional($company)->phone }}" name="phone" />
                                                 @error('phone')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -155,19 +157,19 @@
                                                 <h6 class="mb-0">Fax</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\CompanyInfo::first()->fax }}" name="fax" />
+                                                <input type="text" class="form-control" value="{{ optional($company)->fax }}" name="fax" />
                                                 @error('fax')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                         </div>
-                                        @if(\App\Models\Crm\CompanyInfo::first()->logo != '')
+                                        @if(optional($company)->logo)
                                         <div class="row mb-3">
                                             <div class="col-sm-3">
 
                                             </div>
                                             <div class="col-sm-2 text-secondary">
-                                                <img class="img-thumbnail" src="{{ asset('images/logo') }}/{{ \App\Models\Crm\CompanyInfo::first()->logo }}" alt="">
+                                                <img class="img-thumbnail" src="{{ asset('images/logo') }}/{{ optional($company)->logo }}" alt="">
                                             </div>
                                         </div>
                                         @endif

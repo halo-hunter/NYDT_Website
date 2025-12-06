@@ -41,10 +41,11 @@
                                                 <h6 class="mb-0">Environment</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
+                                                @php($paymentSettings = \App\Models\Crm\PaymentSettings::first())
                                                 <select class="form-select" aria-label="Default select example" name="environment">
                                                     <option selected disabled>Select</option>
-                                                    <option value="sandbox" @if(\App\Models\Crm\PaymentSettings::first()->environment == 'sandbox') selected @endif>Sandbox</option>
-                                                    <option value="production" @if(\App\Models\Crm\PaymentSettings::first()->environment == 'production') selected @endif>Production</option>
+                                                    <option value="sandbox" @if(optional($paymentSettings)->environment == 'sandbox') selected @endif>Sandbox</option>
+                                                    <option value="production" @if(optional($paymentSettings)->environment == 'production') selected @endif>Production</option>
                                                 </select>
                                                 @error('environment')
                                                 <div class="text-danger">{{ $message }}</div>
@@ -56,7 +57,7 @@
                                                 <h6 class="mb-0">Merchant Login ID</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\PaymentSettings::first()->merchant_login_id }}" name="merchant_login_id" />
+                                                <input type="text" class="form-control" value="{{ optional($paymentSettings)->merchant_login_id }}" name="merchant_login_id" />
                                                 @error('merchant_login_id')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -68,7 +69,7 @@
                                             </div>
                                             <div class="col-sm-9 text-secondary">
                                                 <div class="input-group" id="show_hide_password">
-                                                    <input type="password" class="form-control border-end-0" name="merchant_transaction_key" value="{{ \App\Models\Crm\PaymentSettings::first()->merchant_transaction_key }}">
+                                                    <input type="password" class="form-control border-end-0" name="merchant_transaction_key" value="{{ optional($paymentSettings)->merchant_transaction_key }}">
                                                     <a href="javascript:;" class="input-group-text bg-transparent"><i class='bx bx-hide'></i></a>
                                                 </div>
                                                 @error('merchant_transaction_key')
@@ -81,7 +82,7 @@
                                                 <h6 class="mb-0">Merchant Email Address</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\PaymentSettings::first()->merchant_email }}" name="merchant_email" />
+                                                <input type="text" class="form-control" value="{{ optional($paymentSettings)->merchant_email }}" name="merchant_email" />
                                                 @error('merchant_email')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror

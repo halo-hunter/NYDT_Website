@@ -41,7 +41,8 @@
                                                 <h6 class="mb-0">Account SID</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\TwilioApiDetails::first() != null ? \App\Models\Crm\TwilioApiDetails::first()->account_sid : '' }}" name="account_sid" />
+                                                @php($twilio = \App\Models\Crm\TwilioApiDetails::first())
+                                                <input type="text" class="form-control" value="{{ optional($twilio)->account_sid }}" name="account_sid" />
                                                 @error('account_sid')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -52,7 +53,7 @@
                                                 <h6 class="mb-0">APP Token</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="text" class="form-control" value="{{ \App\Models\Crm\TwilioApiDetails::first() != null ? \App\Models\Crm\TwilioApiDetails::first()->app_token : '' }}" name="app_token" />
+                                                <input type="text" class="form-control" value="{{ optional($twilio)->app_token }}" name="app_token" />
                                                 @error('app_token')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror
@@ -63,7 +64,7 @@
                                                 <h6 class="mb-0">From Phone Number</h6>
                                             </div>
                                             <div class="col-sm-9 text-secondary">
-                                                <input type="number" class="form-control" value="{{ \App\Models\Crm\TwilioApiDetails::first() != null ? \App\Models\Crm\TwilioApiDetails::first()->from_phone_number : '' }}" name="from_phone_number" />
+                                                <input type="number" class="form-control" value="{{ optional($twilio)->from_phone_number }}" name="from_phone_number" />
                                                 @error('from_phone_number')
                                                 <div class="text-danger">{{ $message }}</div>
                                                 @enderror

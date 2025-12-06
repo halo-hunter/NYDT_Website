@@ -103,11 +103,16 @@ class LoginController extends Controller
                 'uuid' => $tokenPlain,
             ];
 
-            Mail::to($request->email)
-                ->bcc(EmailSettings::get_bcc_mail_addresses_with_dev_email())
-                ->send(new ForgorPassword($mail_data));
+            try {
+                Mail::to($request->email)
+                    ->bcc(EmailSettings::get_bcc_mail_addresses_with_dev_email())
+                    ->send(new ForgorPassword($mail_data));
 
-            return back()->with("password_change_url_send_success_message", "password reset link sent successfully, please check email");
+                return back()->with("password_change_url_send_success_message", "password reset link sent successfully, please check email");
+            } catch (\Throwable $e) {
+                \Log::error('Failed to send password reset email', ['error' => $e->getMessage()]);
+                return back()->withErrors(['email' => 'Unable to send reset email right now. Please try again later or contact support.']);
+            }
 
         } else {
             return abort(404);

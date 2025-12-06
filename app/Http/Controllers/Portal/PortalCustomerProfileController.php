@@ -21,14 +21,17 @@ class PortalCustomerProfileController extends Controller
 {
     public function show(Request $request) {
 
-        $portal_auth_user_id = Auth::guard('portal')->id();
+        $client = Auth::guard('portal')->user();
 
-        $current_phone = Client::where('id', $portal_auth_user_id)->first()->phone;
-        $current_phone_secondary = Client::where('id', $portal_auth_user_id)->first()->phone_secondary;
-        $current_email = Client::where('id', $portal_auth_user_id)->first()->email;
+        if (! $client) {
+            return redirect()->route('portal->login->show');
+        }
+
+        $current_phone = $client->phone;
+        $current_phone_secondary = $client->phone_secondary;
+        $current_email = $client->email;
 
         if ($request->isMethod('get')) {
-            $client = Client::where('id', $portal_auth_user_id)->first();
             $data = [
                 'firstname' => $client->firstname,
                 'lastname' => $client->lastname,
@@ -41,7 +44,7 @@ class PortalCustomerProfileController extends Controller
             return view('portal.pages.profile.show', $data);
         } elseif ($request->isMethod('post')) {
             if ($request->new_password == null && $request->confirm_password == null) {
-                if (Client::where('id', $portal_auth_user_id)->first()->email == $request->email) {
+                if ($client->email == $request->email) {
                     $validator = Validator::make($request->all(), [
                         'email' => 'required|email',
                         'phone' => 'required',
@@ -57,13 +60,13 @@ class PortalCustomerProfileController extends Controller
                     return back()->withErrors($validator)
                         ->withInput();
                 }
-                Client::where('id', $portal_auth_user_id)->update([
+                Client::where('id', $client->id)->update([
                     'email' => $request->email,
                     'phone' => $request->phone,
                     'phone_secondary' => $request->phone_secondary,
                 ]);
             } else {
-                if (Client::where('id', $portal_auth_user_id)->first()->email == $request->email) {
+                if ($client->email == $request->email) {
                     $validator = Validator::make($request->all(), [
                         'email' => 'required|email',
                         'phone' => 'required',
@@ -82,7 +85,7 @@ class PortalCustomerProfileController extends Controller
                     return back()->withErrors($validator)
                         ->withInput();
                 }
-                Client::where('id', $portal_auth_user_id)->update([
+                Client::where('id', $client->id)->update([
                     'email' => $request->email,
                     'phone' => $request->phone,
                     'phone_secondary' => $request->phone_secondary,
@@ -91,16 +94,19 @@ class PortalCustomerProfileController extends Controller
             }
 
             $mail_data = [
-                'customer_firstname_lastname' => Client::where('id', $portal_auth_user_id)->first()->lastname . ' ' . Client::where('id', $portal_auth_user_id)->first()->firstname,
-                'client_id' => $portal_auth_user_id,
+                'customer_firstname_lastname' => $client->lastname . ' ' . $client->firstname,
+                'client_id' => $client->id,
                 'email' => $request->email != $current_email ? $request->email : 0,
                 'phone' => $request->phone != $current_phone ? $request->phone : 0,
                 'phone_secondary' => $request->phone_secondary != $current_phone_secondary ? $request->phone_secondary : 0,
 
             ];
-            Mail::to(CompanyInfo::first()->email)
-                ->bcc(EmailSettings::get_bcc_mail_addresses_with_dev_email())
-                ->send(new NotifyAdministrationWhenProfileUpdated($mail_data));
+            $companyEmail = optional(CompanyInfo::first())->email;
+            if ($companyEmail) {
+                Mail::to($companyEmail)
+                    ->bcc(EmailSettings::get_bcc_mail_addresses_with_dev_email())
+                    ->send(new NotifyAdministrationWhenProfileUpdated($mail_data));
+            }
 
             return back()->withErrors([
                 "user_profile_updated_successfully" => "profile updated successfully"
