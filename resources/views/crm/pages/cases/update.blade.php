@@ -85,12 +85,15 @@
                                                     <div class="col-sm-9 text-secondary">
                                                         <div class="row">
                                                             <div class="col-4">
-                                                                @if(\App\Models\Crm\Client::where('id', $client->id)->first()->profile_photo != null)
-                                                                    <img class="img-thumbnail w-50" src="{{ asset('files/profile_photos/' . \App\Models\Crm\Client::where('id', $client->id)->first()->profile_photo) }}" alt="">
+                                                                @php
+                                                                    $profilePhoto = \App\Models\Crm\Client::where('id', $client->id)->first()->profile_photo;
+                                                                @endphp
+                                                                @if($profilePhoto)
+                                                                    <img class="img-thumbnail w-50" src="{{ URL::temporarySignedRoute('download->profile_photo_inline', now()->addMinutes(15), ['clientId' => $client->id]) }}" alt="">
                                                                     <br>
-                                                                    <h7 class="mb-0"><a href="{{ asset('files/profile_photos/' . \App\Models\Crm\Client::where('id', $client->id)->first()->profile_photo) }}" download>Download</a></h7>
+                                                                    <h7 class="mb-0"><a href="{{ URL::temporarySignedRoute('download->profile_photo', now()->addMinutes(15), ['clientId' => $client->id]) }}" download>Download</a></h7>
                                                                 @else
-                                                                    <img class="img-thumbnail w-50" src="{{ asset('files/profile_photos/no_photo.png') }}" alt="">
+                                                                    <img class="img-thumbnail w-50" src="{{ asset('images/avatar.png') }}" alt="">
                                                                 @endif
                                                             </div>
                                                             <div class="col-8">
@@ -493,9 +496,14 @@
                                                     <div class="col-sm-3">
                                                         <h6 class="mb-0 text-capitalize">Upload Retainer</h6>
                                                     </div>
-                                                    @if(\App\Models\Crm\CaseModel::where('id', $id)->first()->upload_retainer != '')
+                                                    @php
+                                                        $retainerFile = \App\Models\Crm\CaseModel::where('id', $id)->first()->upload_retainer;
+                                                    @endphp
+                                                    @if($retainerFile)
                                                         <div class="col-sm-4">
-                                                            <h6 class="mb-0"><a href="{{ asset('files/retainer/' . \App\Models\Crm\CaseModel::where('id', $id)->first()->upload_retainer) }}" download>Download file</a></h6>
+                                                            <h6 class="mb-0">
+                                                                <a href="{{ URL::temporarySignedRoute('download->retainer', now()->addMinutes(15), ['caseId' => $id]) }}">Download file</a>
+                                                            </h6>
                                                         </div>
                                                         <div class="col-sm-5 text-secondary">
                                                             <input type="file"
@@ -737,9 +745,9 @@
                                                                                     <div class="row">
                                                                                         <div class="col-11">
                                                                                             @if($upload_document->user_id != 0)
-                                                                                                Document: <a href="{{ asset('files/upload_document/' . $upload_document->name) }}" download>download file</a>
+                                                                                                Document: <a href="{{ URL::temporarySignedRoute('download->case_upload', now()->addMinutes(15), ['uploadId' => $upload_document->id]) }}">download file</a>
                                                                                             @else
-                                                                                                Document: <a href="{{ asset('files/requested_documents/' . $upload_document->name) }}" download>download file</a>
+                                                                                                Document: <a href="{{ URL::temporarySignedRoute('download->case_upload', now()->addMinutes(15), ['uploadId' => $upload_document->id]) }}">download file</a>
                                                                                             @endif
                                                                                         </div>
                                                                                         @if($upload_document->user_id != 0)
@@ -833,7 +841,7 @@
                                                                     <h6 class="mb-0">Upload a form</h6>
                                                                 </div>
                                                                 <div class="col-sm-4">
-                                                                    <h6 class="mb-0 text-capitalize"><a href="{{ asset('files/defence_asylum/' . \App\Models\Crm\DefenceAsylumVersionTwo::where('case_id', $id)->first()->name) }}" download>Download file</a></h6>
+                                                                    <h6 class="mb-0 text-capitalize"><a href="{{ URL::temporarySignedRoute('download->defence_asylum', now()->addMinutes(15), ['caseId' => $id]) }}" download>Download file</a></h6>
                                                                 </div>
                                                                 <div class="col-sm-5 text-secondary">
                                                                     <input type="file"

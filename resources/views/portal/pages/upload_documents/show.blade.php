@@ -46,7 +46,12 @@
                                                     <h6 class="mb-0 text-capitalize">{{ $uploaded_document->document_name }}</h6>
                                                 </div>
                                                 <div class="col-sm-9 text-secondary border p-3">
-                                                    <a href="{{ asset('files/requested_documents/' . \App\Models\Crm\UploadDocumentVersionTwo::where('requested_document_id', $uploaded_document->id)->first()->name) }}" download>download file</a>
+                                                    @php
+                                                        $uploadedRecord = \App\Models\Crm\UploadDocumentVersionTwo::where('requested_document_id', $uploaded_document->id)->first();
+                                                    @endphp
+                                                    @if($uploadedRecord)
+                                                        <a href="{{ URL::temporarySignedRoute('portal->download->case_upload', now()->addMinutes(15), ['uploadId' => $uploadedRecord->id]) }}" download>download file</a>
+                                                    @endif
                                                 </div>
                                             </div>
                                         @endforeach

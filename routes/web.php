@@ -13,6 +13,9 @@ use App\Http\Controllers\Portal\PortalDashboardController;
 use App\Http\Controllers\TestController;
 use App\Models\Crm\EntryDate;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FileDownloadController;
+use App\Http\Controllers\Portal\PortalSensitiveActionConfirmationController;
+use App\Http\Controllers\ProfilePhotoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -160,6 +163,14 @@ Route::group(['prefix' => 'calendar'], function() {
     Route::match(['post'],'/get-records', [CalendarController::class, 'get_records'])->name('calendar->get_records');
 });
 
+Route::group(['prefix' => 'download', 'middleware' => ['auth', 'signed']], function () {
+    Route::get('/retainer/{caseId}', [FileDownloadController::class, 'retainer'])->name('download->retainer');
+    Route::get('/defence-asylum/{caseId}', [FileDownloadController::class, 'defenceAsylum'])->name('download->defence_asylum');
+    Route::get('/case-upload/{uploadId}', [FileDownloadController::class, 'caseUpload'])->name('download->case_upload');
+    Route::get('/profile-photo/{clientId}', [ProfilePhotoController::class, 'show'])->name('download->profile_photo');
+    Route::get('/profile-photo-inline/{clientId}', [ProfilePhotoController::class, 'inline'])->name('download->profile_photo_inline');
+});
+
 Route::group(['prefix' => 'notifications', 'middleware' => 'auth'], function () {
     Route::match(['get'], '/listen', [NotificationController::class, 'index'])->name('notification->index');
 });
@@ -171,11 +182,16 @@ Route::group(['domain' => 'portal.nydt.law'], function() { // TODO: Prod: portal
         Route::match(['get', 'post'],'/change-password/{token}', [PortalAuthController::class, 'change_password'])->middleware('portal_auth_check')->name('portal->change_password->show');
         Route::match(['get', 'post'],'/logout', [PortalAuthController::class, 'logout'])->name('portal->logout');
         Route::match(['get', 'post'],'/set-password/{token}', [PortalAuthController::class, 'set_password'])->middleware('portal_auth_check')->name('portal->set-password->show');
-        Route::match(['get', 'post'],'/dashboard', [PortalDashboardController::class, 'show'])->middleware('portal_auth')->name('portal->dashboard->show');
-        Route::match(['get', 'post'],'/profile', [PortalCustomerProfileController::class, 'show'])->middleware('portal_auth')->name('portal->profile->show');
-        Route::match(['get', 'post'],'/case-history', [PortalCustomerCaseHistoryController::class, 'show'])->middleware('portal_auth')->name('portal->case_history->show');
-        Route::match(['get', 'post'],'/upload-documents/{case_id}', [PortalCustomerUploadDocuments::class, 'show'])->middleware('portal_auth')->name('portal->upload_documents->show');
-        Route::match(['get', 'post'],'/case/{case_id}', [PortalCaseController::class, 'show'])->middleware('portal_auth')->name('portal->case->show');
+        Route::match(['get', 'post'], '/confirm-action', [PortalSensitiveActionConfirmationController::class, 'show'])->middleware(['portal_auth','portal_timeout'])->name('portal->confirm_action->show');
+        Route::post('/confirm-action/confirm', [PortalSensitiveActionConfirmationController::class, 'confirm'])->middleware(['portal_auth','portal_timeout'])->name('portal->confirm_action->confirm');
+        Route::match(['get', 'post'],'/dashboard', [PortalDashboardController::class, 'show'])->middleware(['portal_auth','portal_timeout'])->name('portal->dashboard->show');
+        Route::match(['get', 'post'],'/profile', [PortalCustomerProfileController::class, 'show'])->middleware(['portal_auth','portal_timeout'])->name('portal->profile->show');
+        Route::match(['get', 'post'],'/case-history', [PortalCustomerCaseHistoryController::class, 'show'])->middleware(['portal_auth','portal_timeout'])->name('portal->case_history->show');
+        Route::match(['get', 'post'],'/upload-documents/{case_id}', [PortalCustomerUploadDocuments::class, 'show'])->middleware(['portal_auth','portal_timeout','portal_confirmed'])->name('portal->upload_documents->show');
+        Route::match(['get', 'post'],'/case/{case_id}', [PortalCaseController::class, 'show'])->middleware(['portal_auth','portal_timeout'])->name('portal->case->show');
+        Route::get('/download/case-upload/{uploadId}', [FileDownloadController::class, 'portalCaseUpload'])->middleware(['portal_auth','portal_timeout','portal_confirmed','signed'])->name('portal->download->case_upload');
+        Route::get('/download/profile-photo/{clientId}', [ProfilePhotoController::class, 'portalShow'])->middleware(['portal_auth','portal_timeout','signed'])->name('portal->download->profile_photo');
+        Route::get('/download/profile-photo-inline/{clientId}', [ProfilePhotoController::class, 'portalInline'])->middleware(['portal_auth','portal_timeout','signed'])->name('portal->download->profile_photo_inline');
     });
 });
 
@@ -188,7 +204,3 @@ Route::group(['prefix' => 'datatables', 'middleware' => ['auth']], function(){
     Route::get('/cases/show', [DatatablesController::class, 'cases_show'])->name('datatables-cases_show');
     Route::get('/system-status/twilio-messaging', [DatatablesController::class, 'system_status_twilio_messaging_show'])->name('datatables-system_status_twilio_messaging_show');
 });
-
-
-
-

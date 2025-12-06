@@ -24,6 +24,7 @@ use App\Models\Crm\UploadDocumentVersionTwo;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -72,8 +73,8 @@ class CaseController extends Controller
             }
 
             if ($request->upload_retainer != null) {
-                $fileName = time().'.'.$request->upload_retainer->extension();
-                $request->upload_retainer->move(public_path('files/retainer/'), $fileName);
+                $fileName = \Illuminate\Support\Str::uuid()->toString() . '.' . $request->upload_retainer->extension();
+                Storage::disk('local')->putFileAs('protected/retainer', $request->upload_retainer, $fileName);
             } else {
                 $fileName = NULL;
             }
@@ -225,11 +226,10 @@ class CaseController extends Controller
 
                 if ($request->upload_retainer != null) {
                     if (CaseModel::find($id)->upload_retainer != '') {
-                        \Illuminate\Support\Facades\File::delete('files/retainer/' . CaseModel::find($id)->upload_retainer);
+                        Storage::disk('local')->delete('protected/retainer/' . CaseModel::find($id)->upload_retainer);
                     }
-                    // $fileName = time().'.'.$request->upload_retainer->extension();
-                    $fileName = 'upload_retainer_' . $client->firstname . '_' . $client->lastname . '_' .  Carbon::now()->format('m/d/Y-H_i_s') . '.' . $request->upload_retainer->extension();
-                    $request->upload_retainer->move(public_path('files/retainer/'), $fileName);
+                    $fileName = \Illuminate\Support\Str::uuid()->toString() . '.' . $request->upload_retainer->extension();
+                    Storage::disk('local')->putFileAs('protected/retainer', $request->upload_retainer, $fileName);
                 } else {
                     if (CaseModel::find($id)->upload_retainer != '') {
                         $fileName = CaseModel::find($id)->upload_retainer;
@@ -241,7 +241,8 @@ class CaseController extends Controller
                 $scheduled_biometric_appointment_datetime_from_request = $request->scheduled_biometric_appointment_datetime;
                 $scheduled_biometric_appointment_datetime_from_db = CaseModel::where('id', $id)->first()->scheduled_biometric_appointment_datetime;
 
-                if (Carbon::parse($scheduled_biometric_appointment_datetime_from_request) != Carbon::parse($scheduled_biometric_appointment_datetime_from_db)) {
+                if ($scheduled_biometric_appointment_datetime_from_request && $scheduled_biometric_appointment_datetime_from_db
+                    && Carbon::parse($scheduled_biometric_appointment_datetime_from_request) != Carbon::parse($scheduled_biometric_appointment_datetime_from_db)) {
 
                     CaseModel::where('id', $id)->update([
                         'scheduled_biometric_appointment_is_reminded_by_email' => false,
@@ -253,7 +254,8 @@ class CaseController extends Controller
                 $interview_datetime_from_request = $request->interview_datetime;
                 $interview_datetime_from_db = CaseModel::where('id', $id)->first()->interview_datetime;
 
-                if (Carbon::parse($interview_datetime_from_request) != Carbon::parse($interview_datetime_from_db)) {
+                if ($interview_datetime_from_request && $interview_datetime_from_db
+                    && Carbon::parse($interview_datetime_from_request) != Carbon::parse($interview_datetime_from_db)) {
 
                     CaseModel::where('id', $id)->update([
                         'interview_is_reminded_by_email' => false,
@@ -388,15 +390,14 @@ class CaseController extends Controller
             }
             if ($request->upload_a_form != null) {
                 if (DefenceAsylumVersionTwo::where('case_id', $id)->exists()) {
-                    \Illuminate\Support\Facades\File::delete('files/defence_asylum/' . DefenceAsylumVersionTwo::where('case_id', $id)->first()->name);
+                    Storage::disk('local')->delete('protected/defence_asylum/' . DefenceAsylumVersionTwo::where('case_id', $id)->first()->name);
                     DefenceAsylumVersionTwo::where('case_id', $id)->delete();
                 }
 
-                // $fileName = time().'.'.$request->upload_a_form->extension();
                 $case = CaseModel::find($id);
                 $client = $case->client()->first();
-                $fileName = 'defence_asylums_' . $client->firstname . '_' . $client->lastname . '_' .  Carbon::now()->format('m/d/Y-H_i_s') . '.' . $request->upload_a_form->extension();
-                $request->upload_a_form->move(public_path('files/defence_asylum/'), $fileName);
+                $fileName = \Illuminate\Support\Str::uuid()->toString() . '.' . $request->upload_a_form->extension();
+                Storage::disk('local')->putFileAs('protected/defence_asylum', $request->upload_a_form, $fileName);
             } else {
                 $fileName = NULL;
             }
@@ -527,15 +528,15 @@ class CaseController extends Controller
     {
         if ($request->isMethod('post')) {
             $validator = Validator::make($request->all(), [
-                'document' => 'required|mimes:jpeg,png,jpg,pdf,doc,docx|max:25000',
+                'document' => 'required|file|mimes:jpeg,png,jpg,pdf,doc,docx|max:25000',
             ]);
             if ($validator->fails()) {
                 return back()->withErrors($validator)
                     ->withInput();
             }
             if ($request->document != null) {
-                $fileName = time().'.'.$request->document->extension();
-                $request->document->move(public_path('files/upload_document/'), $fileName);
+                $fileName = \Illuminate\Support\Str::uuid()->toString() . '.' . $request->document->extension();
+                Storage::disk('local')->putFileAs('protected/upload_document', $request->document, $fileName);
             } else {
                 $fileName = NULL;
             }
@@ -555,7 +556,7 @@ class CaseController extends Controller
         if ($request->isMethod('post')) {
             if ($request->has('file_id')) {
                 $file_name = UploadDocumentVersionTwo::find($request->file_id)->name;
-                \Illuminate\Support\Facades\File::delete('files/upload_document/' . $file_name);
+                Storage::disk('local')->delete('protected/upload_document/' . $file_name);
                 UploadDocumentVersionTwo::destroy($request->file_id);
                 return back();
             } else {

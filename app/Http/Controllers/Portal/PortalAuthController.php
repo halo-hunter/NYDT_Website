@@ -17,6 +17,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use http\Message\Body;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -38,11 +39,9 @@ class PortalAuthController extends Controller
     {
         $tokenValue = $request->route('token') ?? $token;
 
-        if (Auth::check()) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-        }
+        Auth::guard('portal')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         $invitation = ClientInvitationToken::findValidToken($tokenValue);
 
@@ -88,38 +87,31 @@ class PortalAuthController extends Controller
         if ($request->isMethod('get')) {
             return view('portal.pages.login.show');
         } elseif ($request->isMethod('post')) {
+            $this->enforceRateLimit('portal-login', $request);
             $credentials = $request->validate([
                 'email' => ['required', 'email'],
                 'password' => ['required'],
             ]);
-            if (Client::where('email', $request->email)->exists()) {
-                if (Hash::check($request->password, Client::where('email', $request->email)->first()->password)) {
-                    $request->session()->regenerate();
-                    session()->forget('portal_authorized_user_id');
-                    session()->put('portal_authorized_user_id', Client::where('email', $request->email)->first()->id);
-                    session()->save();
-                    if (session()->has('portal_authorized_user_id')) {
-                        return redirect()->route('portal->dashboard->show');
-                    } else {
-                        return redirect()->route('portal->login->show');
-                    }
-                }  else {
-                    return back()->withErrors([
-                        'credentials_is_incorrect' => 'The provided credentials do not match our records.',
-                    ]);
-                }
-            } else {
-                return back()->withErrors([
-                    'credentials_is_incorrect' => 'The provided credentials do not match our records.',
-                ]);
+
+            if (Auth::guard('portal')->attempt($credentials)) {
+                RateLimiter::clear($this->rateLimiterKey('portal-login', $request));
+                $request->session()->regenerate();
+                return redirect()->route('portal->dashboard->show');
             }
+
+            RateLimiter::hit($this->rateLimiterKey('portal-login', $request));
+            return back()->withErrors([
+                'credentials_is_incorrect' => 'The provided credentials do not match our records.',
+            ]);
         } else {
             return abort(404);
         }
     }
 
     public function logout(Request $request) {
-        session()->forget('portal_authorized_user_id');
+        Auth::guard('portal')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         return redirect()->route('portal->login->show');
     }
 
@@ -127,6 +119,7 @@ class PortalAuthController extends Controller
         if ($request->isMethod('get')) {
             return view('portal.pages.forgot_password.show');
         } elseif ($request->isMethod('post')) {
+            $this->enforceRateLimit('portal-forgot-password', $request);
 
             $validator = Validator::make($request->all(), [
                 'email' => 'required|email|exists:clients,email',
@@ -145,22 +138,24 @@ class PortalAuthController extends Controller
             }
 
             if ($validator->fails()) {
+                RateLimiter::hit($this->rateLimiterKey('portal-forgot-password', $request));
                 return back()->withErrors($validator)
                     ->withInput();
             }
 
-            $uuid = Str::uuid();
+            $tokenPlain = Str::random(64);
+            $hashedToken = hash('sha256', $tokenPlain);
 
             DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
             DB::table('password_reset_tokens')->insert([
                 'email' => $request->email,
-                'token' => $uuid,
+                'token' => $hashedToken,
                 'created_at' => Carbon::now()
             ]);
 
             $mail_data = [
-                'uuid' => $uuid,
+                'uuid' => $tokenPlain,
             ];
 
             Mail::to($request->email)
@@ -176,10 +171,15 @@ class PortalAuthController extends Controller
 
     public function change_password(Request $request, $token) {
         if ($request->isMethod('get')) {
-            if (DB::table('password_reset_tokens')->where('token', $token)->where('created_at', '<=', Carbon::now()->subMinutes(5)->toDateTimeString())->exists()) {
-                DB::table('password_reset_tokens')->where('token', $token)->delete();
+            $hashedToken = hash('sha256', $token);
+            $record = DB::table('password_reset_tokens')->where('token', $hashedToken)->first();
+
+            if ($record && $record->created_at && Carbon::parse($record->created_at)->lte(Carbon::now()->subMinutes(5))) {
+                DB::table('password_reset_tokens')->where('token', $hashedToken)->delete();
+                $record = null;
             }
-            if (DB::table('password_reset_tokens')->where('token', $token)->exists()) {
+
+            if ($record) {
                 $data = ['token' => $token];
                 return view('portal.pages.change_password.show', $data);
             } else {
@@ -187,24 +187,57 @@ class PortalAuthController extends Controller
                 return view('portal.pages.change_password.show', $data);
             }
         } elseif ($request->isMethod('post')) {
+            $this->enforceRateLimit('portal-change-password', $request);
             $validator = Validator::make($request->all(), [
                 'new_password' => 'required|min:8',
                 'confirm_password' => 'required|same:new_password',
             ]);
             if ($validator->fails()) {
+                RateLimiter::hit($this->rateLimiterKey('portal-change-password', $request));
                 return back()->withErrors($validator)
                     ->withInput();
             }
-            $user_email = DB::table('password_reset_tokens')->where('token', $token)->first()->email;
+
+            $hashedToken = hash('sha256', $token);
+            $record = DB::table('password_reset_tokens')->where('token', $hashedToken)->first();
+
+            if (! $record) {
+                return back()->withErrors([
+                    'token_not_found' => 'password change url is incorrect',
+                ]);
+            }
+
+            if ($record->created_at && Carbon::parse($record->created_at)->lte(Carbon::now()->subMinutes(5))) {
+                DB::table('password_reset_tokens')->where('token', $hashedToken)->delete();
+                return back()->withErrors([
+                    'token_not_found' => 'password change url is incorrect or expired',
+                ]);
+            }
+
+            $user_email = $record->email;
             Client::where('email', $user_email)->update([
                 'password' => Hash::make($request->new_password)
             ]);
-            DB::table('password_reset_tokens')->where('token', $token)->delete();
+            DB::table('password_reset_tokens')->where('token', $hashedToken)->delete();
+            RateLimiter::clear($this->rateLimiterKey('portal-change-password', $request));
             Mail::to($user_email)
                 ->bcc(EmailSettings::get_bcc_mail_addresses_with_dev_email())
                 ->send(new PortalChangePassword());
             return redirect()->route('portal->login->show')->with("password_change_success_message", "password changed successfully");
         }
+    }
+
+    protected function enforceRateLimit(string $name, Request $request): void
+    {
+        $key = $this->rateLimiterKey($name, $request);
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            abort(429, 'Too many attempts. Please try again later.');
+        }
+    }
+
+    protected function rateLimiterKey(string $name, Request $request): string
+    {
+        return $name . '|' . $request->ip() . '|' . $request->input('email', 'guest');
     }
 
 }

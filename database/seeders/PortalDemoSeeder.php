@@ -20,7 +20,7 @@ class PortalDemoSeeder extends Seeder
             $client->firstname = 'Portal';
             $client->lastname = 'Demo';
             $client->phone = '5551234567';
-            $client->password = Hash::make('Portal123!');
+            $client->password = Hash::make('C');
             $client->save();
         }
 

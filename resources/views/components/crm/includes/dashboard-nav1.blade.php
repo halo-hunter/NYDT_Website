@@ -209,13 +209,16 @@
         </div>
 
 
-        <div class="user-box dropdown">
-            <a class="d-flex align-items-center nav-link dropdown-toggle dropdown-toggle-nocaret" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="user-info ps-3">
-                    <p class="user-name mb-0">{{ \Illuminate\Support\Facades\Auth::user()->firstname }} {{ \Illuminate\Support\Facades\Auth::user()->lastname }}</p>
-                    <p class="designattion mb-0 text-capitalize">{{ \App\Models\Crm\UserLevel::where('user_level_id', \Illuminate\Support\Facades\Auth::user()->user_level_id)->first()->user_level_name }}</p>
-                </div>
-            </a>
+                <div class="user-box dropdown">
+                    <a class="d-flex align-items-center nav-link dropdown-toggle dropdown-toggle-nocaret" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="user-info ps-3">
+                            <p class="user-name mb-0">{{ \Illuminate\Support\Facades\Auth::user()->firstname }} {{ \Illuminate\Support\Facades\Auth::user()->lastname }}</p>
+                            @php
+                                $userLevel = \App\Models\Crm\UserLevel::where('user_level_id', \Illuminate\Support\Facades\Auth::user()->user_level_id)->first();
+                            @endphp
+                            <p class="designattion mb-0 text-capitalize">{{ $userLevel?->user_level_name ?? 'user' }}</p>
+                        </div>
+                    </a>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="{{ route('profile->settings') }}"><i class="bx bx-user"></i><span>Profile Settings</span></a>
                 </li>

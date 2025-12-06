@@ -154,6 +154,8 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    'allow_direct_card_entry' => env('ALLOW_DIRECT_CARD_ENTRY', false),
+
     /*
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver

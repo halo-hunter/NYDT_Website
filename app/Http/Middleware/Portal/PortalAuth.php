@@ -5,6 +5,7 @@ namespace App\Http\Middleware\Portal;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
 
 class PortalAuth
 {
@@ -15,10 +16,10 @@ class PortalAuth
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!session()->has('portal_authorized_user_id')) {
+        if (!Auth::guard('portal')->check()) {
             return redirect()->route('portal->login->show');
-        } else {
-            return $next($request);
         }
+
+        return $next($request);
     }
 }

@@ -36,12 +36,18 @@
                     <div class="row">
                         <div class="col-lg-4">
                             <div class="card">
-                                <div class="card-body">
-                                    <div class="d-flex flex-column align-items-center text-center">
-                                        <div class="mt-3">
-                                            <h4 class="text-capitalize">{{ $firstname }} {{ $lastname }}</h4>
-                                            <p class="text-secondary mb-1">{{ $email }}</p>
+                                <div class="card-body text-center">
+                                    @if(!empty($profile_photo))
+                                        <img class="img-thumbnail mb-3" src="{{ URL::temporarySignedRoute('portal->download->profile_photo_inline', now()->addMinutes(15), ['clientId' => $client_id]) }}" alt="Profile photo" width="150">
+                                        <div>
+                                            <a href="{{ URL::temporarySignedRoute('portal->download->profile_photo', now()->addMinutes(15), ['clientId' => $client_id]) }}" download>Download</a>
                                         </div>
+                                    @else
+                                        <img class="img-thumbnail mb-3" src="{{ asset('images/avatar.png') }}" alt="Profile photo" width="150">
+                                    @endif
+                                    <div class="mt-3">
+                                        <h4 class="text-capitalize">{{ $firstname }} {{ $lastname }}</h4>
+                                        <p class="text-secondary mb-1">{{ $email }}</p>
                                     </div>
                                 </div>
                             </div>

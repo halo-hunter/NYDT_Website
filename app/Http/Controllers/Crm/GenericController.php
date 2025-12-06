@@ -19,6 +19,13 @@ class GenericController extends Controller
 
         $data = (object) $data;
 
+        if (!config('app.allow_direct_card_entry', false)) {
+            return (object) [
+                'code' => 0,
+                'message' => 'Direct card entry is disabled. Please use hosted/tokenized payment flow.',
+            ];
+        }
+
         $amount = (float) $data->amount;
 
         $card_number = (integer) $data->card_number;

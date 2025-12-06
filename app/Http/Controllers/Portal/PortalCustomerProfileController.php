@@ -21,19 +21,22 @@ class PortalCustomerProfileController extends Controller
 {
     public function show(Request $request) {
 
-        $portal_auth_user_id = session()->get('portal_authorized_user_id');
+        $portal_auth_user_id = Auth::guard('portal')->id();
 
         $current_phone = Client::where('id', $portal_auth_user_id)->first()->phone;
         $current_phone_secondary = Client::where('id', $portal_auth_user_id)->first()->phone_secondary;
         $current_email = Client::where('id', $portal_auth_user_id)->first()->email;
 
         if ($request->isMethod('get')) {
+            $client = Client::where('id', $portal_auth_user_id)->first();
             $data = [
-                'firstname' => Client::where('id', $portal_auth_user_id)->first()->firstname,
-                'lastname' => Client::where('id', $portal_auth_user_id)->first()->lastname,
-                'email' => Client::where('id', $portal_auth_user_id)->first()->email,
-                'phone' => Client::where('id', $portal_auth_user_id)->first()->phone,
-                'phone_secondary' => Client::where('id', $portal_auth_user_id)->first()->phone_secondary,
+                'firstname' => $client->firstname,
+                'lastname' => $client->lastname,
+                'email' => $client->email,
+                'phone' => $client->phone,
+                'phone_secondary' => $client->phone_secondary,
+                'profile_photo' => $client->profile_photo,
+                'client_id' => $client->id,
             ];
             return view('portal.pages.profile.show', $data);
         } elseif ($request->isMethod('post')) {

@@ -110,9 +110,16 @@
                                                     </div>
                                                     @if(\App\Models\Crm\Client::where('id', $id)->first()->profile_photo != '')
                                                         <div class="col-sm-4">
-                                                            <img class="img-thumbnail w-25" src="{{ asset('files/profile_photos/' . \App\Models\Crm\Client::where('id', $id)->first()->profile_photo) }}" alt="">
-                                                            <br>
-                                                            <h7 class="mb-0"><a href="{{ asset('files/profile_photos/' . \App\Models\Crm\Client::where('id', $id)->first()->profile_photo) }}" download>Download</a></h7>
+                                                            @php
+                                                                $profilePhoto = \App\Models\Crm\Client::where('id', $id)->first()->profile_photo;
+                                                            @endphp
+                                                            @if($profilePhoto)
+                                                                <img class="img-thumbnail w-25" src="{{ URL::temporarySignedRoute('download->profile_photo_inline', now()->addMinutes(15), ['clientId' => $id]) }}" alt="">
+                                                                <br>
+                                                                <h7 class="mb-0"><a href="{{ URL::temporarySignedRoute('download->profile_photo', now()->addMinutes(15), ['clientId' => $id]) }}" download>Download</a></h7>
+                                                            @else
+                                                                <img class="img-thumbnail w-25" src="{{ asset('images/avatar.png') }}" alt="">
+                                                            @endif
                                                         </div>
                                                         <div class="col-sm-5 text-secondary">
                                                             <input type="file"

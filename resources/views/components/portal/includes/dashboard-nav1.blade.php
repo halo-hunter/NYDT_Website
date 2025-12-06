@@ -10,7 +10,10 @@
         <div class="user-box">
             <a class="d-flex align-items-center nav-link">
                 <div class="user-info ps-3">
-                    <p class="user-name mb-0 text-capitalize">{{ \App\Models\Crm\Client::where('id', session()->get('portal_authorized_user_id'))->first()->firstname }} {{ \App\Models\Crm\Client::where('id', session()->get('portal_authorized_user_id'))->first()->lastname }}</p>
+                    @php
+                        $portalUser = Auth::guard('portal')->user();
+                    @endphp
+                    <p class="user-name mb-0 text-capitalize">{{ $portalUser?->firstname }} {{ $portalUser?->lastname }}</p>
                 </div>
             </a>
         </div>

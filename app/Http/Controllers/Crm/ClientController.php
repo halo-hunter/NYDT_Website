@@ -15,6 +15,7 @@ use App\Services\ClientInvitationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -52,8 +53,8 @@ class ClientController extends Controller
             }
 
             if ($request->profile_photo != null) {
-                $fileName = time().'.'.$request->profile_photo->extension();
-                $request->profile_photo->move(public_path('files/profile_photos/'), $fileName);
+                $fileName = Str::uuid()->toString().'.'.$request->profile_photo->extension();
+                Storage::disk('local')->putFileAs('protected/profile_photos', $request->profile_photo, $fileName);
             } else {
                 $fileName = NULL;
             }
@@ -286,10 +287,10 @@ class ClientController extends Controller
 
             if ($request->profile_photo != null) {
                 if (Client::find($id)->profile_photo != '') {
-                    \Illuminate\Support\Facades\File::delete('files/profile_photos/' . Client::find($id)->profile_photo);
+                    Storage::disk('local')->delete('protected/profile_photos/' . Client::find($id)->profile_photo);
                 }
-                $fileName = time().'.'.$request->profile_photo->extension();
-                $request->profile_photo->move(public_path('files/profile_photos/'), $fileName);
+                $fileName = Str::uuid()->toString().'.'.$request->profile_photo->extension();
+                Storage::disk('local')->putFileAs('protected/profile_photos', $request->profile_photo, $fileName);
             } else {
                 if (Client::find($id)->profile_photo != '') {
                     $fileName = Client::find($id)->profile_photo;

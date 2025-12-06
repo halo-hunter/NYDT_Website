@@ -3,14 +3,27 @@
 namespace App\Models\Crm;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Client extends Model
+class Client extends Authenticatable
 {
     use HasFactory, SoftDeletes;
     public $timestamps = true;
     protected $guarded = [];
+    protected $hidden = ['password', 'remember_token'];
+    protected $casts = [
+        'a_number' => \App\Casts\FallbackEncrypted::class,
+        'social_security' => \App\Casts\FallbackEncrypted::class,
+        'phone' => \App\Casts\FallbackEncrypted::class,
+        'phone_secondary' => \App\Casts\FallbackEncrypted::class,
+        'address_country' => \App\Casts\FallbackEncrypted::class,
+        'address_state_code' => \App\Casts\FallbackEncrypted::class,
+        'address_city' => \App\Casts\FallbackEncrypted::class,
+        'address_zip_code' => \App\Casts\FallbackEncrypted::class,
+        'address_unit' => \App\Casts\FallbackEncrypted::class,
+        'address_address' => \App\Casts\FallbackEncrypted::class,
+    ];
 
     protected static function newFactory()
     {

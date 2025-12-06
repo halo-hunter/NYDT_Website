@@ -23,23 +23,26 @@ class DatatablesController extends Controller
 
         return datatables($query)
             ->editColumn('created_at', function($query) {
-                return Carbon::parse($query->created_at)->format('m/d/Y H:i');
+                return $query->created_at ? e(Carbon::parse($query->created_at)->format('m/d/Y H:i')) : '';
             })
             ->editColumn('updated_at', function($query) {
-                return Carbon::parse($query->updated_at)->format('m/d/Y H:i');
+                return $query->updated_at ? e(Carbon::parse($query->updated_at)->format('m/d/Y H:i')) : '';
             })
             ->editColumn('user_level', function($query) {
-                return "<span class='text-capitalize'>" . UserLevel::where('user_level_id', $query['user_level_id'])->first()->user_level_name . "</span>";
+                $level = UserLevel::where('user_level_id', $query['user_level_id'])->first();
+                $label = $level ? e($level->user_level_name) : 'n/a';
+                return "<span class='text-capitalize'>{$label}</span>";
             })
             ->addColumn('actions', function ($query) {
+                $id = e($query['id']);
                 if ($query['id'] == Auth::id()) {
                     return '<div class="d-flex order-actions" id="table_delete_edit_buttons_div_id">
-                        <a href="users/edit/' . $query['id'] . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
+                        <a href="users/edit/' . $id . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
                     </div>';
                 } else {
                     return '<div class="d-flex order-actions" id="table_delete_edit_buttons_div_id">
-                        <a href="users/edit/' . $query['id'] . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
-                        <a href="users/delete/' . $query['id'] . '" class="ms-2 bg-danger text-white"><i class="bx bx bxs-trash"></i></a>
+                        <a href="users/edit/' . $id . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
+                        <a href="users/delete/' . $id . '" class="ms-2 bg-danger text-white"><i class="bx bx bxs-trash"></i></a>
                     </div>';
                 }
             })
@@ -50,24 +53,26 @@ class DatatablesController extends Controller
         $query = Attorneys::all();
         return datatables($query)
             ->editColumn('created_at', function($query) {
-                return Carbon::parse($query->created_at)->format('m/d/Y H:i');
+                return $query->created_at ? Carbon::parse($query->created_at)->format('m/d/Y H:i') : '';
             })
             ->editColumn('updated_at', function($query) {
-                return Carbon::parse($query->updated_at)->format('m/d/Y H:i');
+                return $query->updated_at ? Carbon::parse($query->updated_at)->format('m/d/Y H:i') : '';
             })
             ->editColumn('company_address_state_code', function($query) {
-                return States::where('state_code', $query['company_address_state_code'])->first()->state_name;
+                $state = States::where('state_code', $query['company_address_state_code'])->first();
+                return $state ? e($state->state_name) : '';
             })
             ->editColumn('phone', function($query) {
-                return GenericController::format_phone_number_to_us_format($query->phone);
+                return e(GenericController::format_phone_number_to_us_format($query->phone));
             })
             ->editColumn('email', function($query) {
-                return "<span class='text-lowercase'>$query->email</span>";
+                return "<span class='text-lowercase'>" . e($query->email) . "</span>";
             })
             ->addColumn('actions', function ($query) {
+                $id = e($query['id']);
                 return '<div class="d-flex order-actions" id="table_delete_edit_buttons_div_id">
-                        <a href="attorneys/edit/' . $query['id'] . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
-                        <a href="attorneys/delete/' . $query['id'] . '" class="ms-2 bg-danger text-white"><i class="bx bx bxs-trash"></i></a>
+                        <a href="attorneys/edit/' . $id . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
+                        <a href="attorneys/delete/' . $id . '" class="ms-2 bg-danger text-white"><i class="bx bx bxs-trash"></i></a>
                     </div>';
             })
             ->rawColumns(['company_address_state_code', 'actions', 'email'])->toJson();
@@ -77,32 +82,42 @@ class DatatablesController extends Controller
         $query = Customers::all();
         return datatables($query)
             ->editColumn('firstname', function($query) {
-                return '<a href="customers/edit/' . $query['id'] . '">' . $query['firstname'] . '</a>';
+                $id = e($query['id']);
+                $name = e($query['firstname']);
+                return '<a href="customers/edit/' . $id . '">' . $name . '</a>';
             })
             ->editColumn('lastname', function($query) {
-                return '<a href="customers/edit/' . $query['id'] . '">' . $query['lastname'] . '</a>';
+                $id = e($query['id']);
+                $name = e($query['lastname']);
+                return '<a href="customers/edit/' . $id . '">' . $name . '</a>';
             })
             ->editColumn('created_at', function($query) {
-                return Carbon::parse($query->created_at)->format('m/d/Y H:i');
+                return $query->created_at ? Carbon::parse($query->created_at)->format('m/d/Y H:i') : '';
             })
             ->editColumn('updated_at', function($query) {
-                return Carbon::parse($query->updated_at)->format('m/d/Y H:i');
+                return $query->updated_at ? Carbon::parse($query->updated_at)->format('m/d/Y H:i') : '';
             })
             ->editColumn('attorney_id', function($query) {
                 if ($query['attorney_id'] != 0) {
-                    return Attorneys::where('id', $query['attorney_id'])->first()->company_name . " (" . Attorneys::where('id', $query['attorney_id'])->first()->firstname . " " . Attorneys::where('id', $query['attorney_id'])->first()->lastname . ")";
+                    $attorney = Attorneys::where('id', $query['attorney_id'])->first();
+                    if (! $attorney) {
+                        return '';
+                    }
+                    return e($attorney->company_name . " (" . $attorney->firstname . " " . $attorney->lastname . ")");
                 }
             })
             ->addColumn('actions', function ($query) {
                 $get_auth_user_level_id = DB::table('users')->where('id', Auth::id())->first()->user_level_id;
                 if ($get_auth_user_level_id == 1) {
+                    $id = e($query['id']);
                     return '<div class="d-flex order-actions" id="table_delete_edit_buttons_div_id">
-                        <a href="customers/edit/' . $query['id'] . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
-                        <a href="customers/delete/' . $query['id'] . '" class="ms-2 bg-danger text-white"><i class="bx bx bxs-trash"></i></a>
+                        <a href="customers/edit/' . $id . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
+                        <a href="customers/delete/' . $id . '" class="ms-2 bg-danger text-white"><i class="bx bx bxs-trash"></i></a>
                     </div>';
                 } else {
+                    $id = e($query['id']);
                     return '<div class="d-flex order-actions" id="table_delete_edit_buttons_div_id">
-                        <a href="customers/edit/' . $query['id'] . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
+                        <a href="customers/edit/' . $id . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
                     </div>';
                 }
             })
@@ -112,19 +127,23 @@ class DatatablesController extends Controller
         $query = Client::orderby('lastname', 'asc')->get();
         return datatables($query)
             ->editColumn('firstname', function($query) {
-                return '<a href="clients/edit/' . $query['id'] . '" class="text-capitalize">' . $query['firstname'] . '</a>';
+                $id = e($query['id']);
+                $name = e($query['firstname']);
+                return '<a href="clients/edit/' . $id . '" class="text-capitalize">' . $name . '</a>';
             })
             ->editColumn('lastname', function($query) {
-                return '<a href="clients/edit/' . $query['id'] . '" class="text-capitalize">' . $query['lastname'] . '</a>';
+                $id = e($query['id']);
+                $name = e($query['lastname']);
+                return '<a href="clients/edit/' . $id . '" class="text-capitalize">' . $name . '</a>';
             })
             ->editColumn('created_at', function($query) {
-                return Carbon::parse($query->created_at)->format('m/d/Y H:i');
+                return $query->created_at ? Carbon::parse($query->created_at)->format('m/d/Y H:i') : '';
             })
             ->editColumn('updated_at', function($query) {
-                return Carbon::parse($query->updated_at)->format('m/d/Y H:i');
+                return $query->updated_at ? Carbon::parse($query->updated_at)->format('m/d/Y H:i') : '';
             })
             ->editColumn('phone', function($query) {
-                return GenericController::format_phone_number_to_us_format($query['phone']);
+                return e(GenericController::format_phone_number_to_us_format($query['phone']));
             })
             ->editColumn('cases', function($query) {
                 $client = Client::find($query['id']);
@@ -139,13 +158,15 @@ class DatatablesController extends Controller
                 $count_cases = $client->cases()->count();
 
                 if ($get_auth_user_level_id == 1 && $count_cases == 0) {
+                    $id = e($query['id']);
                     return '<div class="d-flex order-actions" id="table_delete_edit_buttons_div_id">
-                        <a href="clients/edit/' . $query['id'] . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
-                        <a href="clients/delete/' . $query['id'] . '" class="ms-2 bg-danger text-white"><i class="bx bx bxs-trash"></i></a>
+                        <a href="clients/edit/' . $id . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
+                        <a href="clients/delete/' . $id . '" class="ms-2 bg-danger text-white"><i class="bx bx bxs-trash"></i></a>
                     </div>';
                 } else {
+                    $id = e($query['id']);
                     return '<div class="d-flex order-actions" id="table_delete_edit_buttons_div_id">
-                        <a href="clients/edit/' . $query['id'] . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
+                        <a href="clients/edit/' . $id . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
                     </div>';
                 }
             })
@@ -165,28 +186,30 @@ class DatatablesController extends Controller
             ->editColumn('firstname', function($query) {
                 $case = CaseModel::find($query['id']);
                 $client = $case->client()->first();
-                return '<a href="cases/edit/' . $query['id'] . '" class="text-capitalize">' . $client->firstname . '</a>';
+                $id = e($query['id']);
+                return '<a href="cases/edit/' . $id . '" class="text-capitalize">' . e($client->firstname) . '</a>';
             })
             ->editColumn('lastname', function($query) {
                 $case = CaseModel::find($query['id']);
                 $client = $case->client()->first();
-                return '<a href="cases/edit/' . $query['id'] . '" class="text-capitalize">' . $client->lastname . '</a>';
+                $id = e($query['id']);
+                return '<a href="cases/edit/' . $id . '" class="text-capitalize">' . e($client->lastname) . '</a>';
             })
             ->editColumn('email', function($query) {
                 $case = CaseModel::find($query['id']);
                 $client = $case->client()->first();
-                return $client->email;
+                return e($client->email);
             })
             ->editColumn('phone', function($query) {
                 $case = CaseModel::find($query['id']);
                 $client = $case->client()->first();
-                return GenericController::format_phone_number_to_us_format($client->phone);
+                return e(GenericController::format_phone_number_to_us_format($client->phone));
             })
             ->editColumn('created_at', function($query) {
                 return Carbon::parse($query->created_at)->format('m/d/Y H:i');
             })
             ->editColumn('updated_at', function($query) {
-                return Carbon::parse($query->updated_at)->format('m/d/Y H:i');
+                return $query->updated_at ? Carbon::parse($query->updated_at)->format('m/d/Y H:i') : '';
             })
             ->editColumn('attorney_id', function($query) {
                 if ($query['attorney_id'] != 0) {
@@ -195,14 +218,15 @@ class DatatablesController extends Controller
             })
             ->addColumn('actions', function ($query) {
                 $get_auth_user_level_id = DB::table('users')->where('id', Auth::id())->first()->user_level_id;
+                $id = e($query['id']);
                 if ($get_auth_user_level_id == 1) {
                     return '<div class="d-flex order-actions" id="table_delete_edit_buttons_div_id">
-                        <a href="cases/edit/' . $query['id'] . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
-                        <a href="cases/delete/' . $query['id'] . '" class="ms-2 bg-danger text-white"><i class="bx bx bxs-trash"></i></a>
+                        <a href="cases/edit/' . $id . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
+                        <a href="cases/delete/' . $id . '" class="ms-2 bg-danger text-white"><i class="bx bx bxs-trash"></i></a>
                     </div>';
                 } else {
                     return '<div class="d-flex order-actions" id="table_delete_edit_buttons_div_id">
-                        <a href="cases/edit/' . $query['id'] . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
+                        <a href="cases/edit/' . $id . '" class="bg-warning text-white"><i class="bx bxs-edit"></i></a>
                     </div>';
                 }
             })
@@ -237,7 +261,7 @@ class DatatablesController extends Controller
                 }
             })
             ->editColumn('created_at', function($query) {
-                return Carbon::parse($query->updated_at)->format('m/d/Y H:i');
+                return $query->updated_at ? Carbon::parse($query->updated_at)->format('m/d/Y H:i') : '';
             })
             ->rawColumns(['status', 'client_id', 'case_id'])
             ->toJson();

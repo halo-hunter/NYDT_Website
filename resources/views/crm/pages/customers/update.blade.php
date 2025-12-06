@@ -387,7 +387,9 @@
                                                     </div>
                                                     @if(\App\Models\Crm\Customers::where('id', $id)->first()->upload_retainer != '')
                                                         <div class="col-sm-4">
-                                                            <h6 class="mb-0"><a href="{{ asset('files/retainer/' . \App\Models\Crm\Customers::where('id', $id)->first()->upload_retainer) }}" download>Download file</a></h6>
+                                                        <h6 class="mb-0">
+                                                            <a href="{{ URL::temporarySignedRoute('download->retainer', now()->addMinutes(15), ['caseId' => $id]) }}">Download file</a>
+                                                        </h6>
                                                         </div>
                                                         <div class="col-sm-5 text-secondary">
                                                             <input type="file"
@@ -595,9 +597,9 @@
                                                                                     <div class="row">
                                                                                         <div class="col-11">
                                                                                             @if($upload_document->user_id != 0)
-                                                                                                Document: <a href="{{ asset('files/upload_document/' . $upload_document->name) }}" download>download file</a>
+                                                                                                Document: <a href="{{ URL::temporarySignedRoute('download->case_upload', now()->addMinutes(15), ['uploadId' => $upload_document->id]) }}">download file</a>
                                                                                             @else
-                                                                                                Document: <a href="{{ asset('files/requested_documents/' . $upload_document->name) }}" download>download file</a>
+                                                                                                Document: <a href="{{ URL::temporarySignedRoute('download->case_upload', now()->addMinutes(15), ['uploadId' => $upload_document->id]) }}">download file</a>
                                                                                             @endif
                                                                                         </div>
                                                                                         @if($upload_document->user_id != 0)
@@ -687,7 +689,7 @@
                                                                     <h6 class="mb-0">Upload a form</h6>
                                                                 </div>
                                                                 <div class="col-sm-4">
-                                                                    <h6 class="mb-0"><a href="{{ asset('files/defence_asylum/' . \App\Models\Crm\DefenceAsylum::where('customer_id', $id)->first()->name) }}" download>Download file</a></h6>
+                                                                    <h6 class="mb-0"><a href="{{ URL::temporarySignedRoute('download->defence_asylum', now()->addMinutes(15), ['caseId' => $id]) }}" download>Download file</a></h6>
                                                                 </div>
                                                                 <div class="col-sm-5 text-secondary">
                                                                     <input type="file"

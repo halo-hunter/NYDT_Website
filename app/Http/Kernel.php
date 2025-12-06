@@ -57,6 +57,8 @@ class Kernel extends HttpKernel
     protected $middlewareAliases = [
         'portal_auth' => \App\Http\Middleware\Portal\PortalAuth::class,
         'portal_auth_check' => \App\Http\Middleware\Portal\PortalAuthCheck::class,
+        'portal_timeout' => \App\Http\Middleware\Portal\PortalSessionTimeout::class,
+        'portal_confirmed' => \App\Http\Middleware\Portal\RequireRecentConfirmation::class,
         'redirect_to_portal' => \App\Http\Middleware\Portal\RedirectToPortal::class,
         'check_user_level_for_rights_to_delete_customers' => \App\Http\Middleware\Crm\CheckUserLevelForRightsToDeleteCustomers::class,
         'is_admin' => \App\Http\Middleware\Crm\IsAdmin::class,

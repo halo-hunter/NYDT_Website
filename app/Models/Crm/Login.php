@@ -18,7 +18,10 @@ class Login extends Model
         $insert_data = Login::insert([
             'ip' => request()->ip(),
             'user_agent' => request()->userAgent(),
-            'user_data' => json_encode(Auth::user()),
+            'user_data' => json_encode([
+                'id' => Auth::id(),
+                'email' => Auth::user()->email ?? null,
+            ]),
             'auth_type' => $auth_type,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
@@ -31,7 +34,7 @@ class Login extends Model
             'ip' => request()->ip(),
             'user_agent' => request()->userAgent(),
             'filled_guest_email' => $email,
-            'filled_guest_password' => $password,
+            'filled_guest_password_redacted' => '[redacted]',
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
