@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('upload_document_version_twos', function (Blueprint $table) {
-            // original table does not have is_uploaded; place after description instead
-            $table->integer('requested_document_id')->nullable()->after('description');
+            // Keep position flexible across environments to avoid missing-column errors
+            $table->integer('requested_document_id')->nullable();
         });
     }
 
