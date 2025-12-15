@@ -84,7 +84,7 @@ class PortalAuthController extends Controller
     }
 
     public function login(Request $request) {
-        if ($request->isMethod('get')) {
+        if ($request->isMethod('get') || $request->isMethod('head')) {
             return view('portal.pages.login.show');
         } elseif ($request->isMethod('post')) {
             $this->enforceRateLimit('portal-login', $request);

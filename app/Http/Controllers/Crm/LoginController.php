@@ -24,7 +24,7 @@ class LoginController extends Controller
         if (Auth::check()) {
             return redirect()->route('dashboard');
         } else {
-            if ($request->isMethod('get')) {
+            if ($request->isMethod('get') || $request->isMethod('head')) {
                 return view('crm.pages.login.show');
             } elseif ($request->isMethod('post')) {
                 $this->enforceRateLimit('crm-login', $request);
